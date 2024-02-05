@@ -1,5 +1,6 @@
 /* eslint-disable react/no-multi-comp */
 import React from 'react';
+
 import type { ColumnType, TableProps } from '..';
 import Table from '..';
 import { act, fireEvent, render } from '../../../tests/utils';
@@ -283,7 +284,7 @@ describe('Table.sorter', () => {
 
     // set table props showSorterTooltip is false, column showSorterTooltip is true
     rerender(
-      createTable({ showSorterTooltip: true, columns: [{ ...column, showSorterTooltip: true }] }),
+      createTable({ showSorterTooltip: false, columns: [{ ...column, showSorterTooltip: true }] }),
     );
     fireEvent.mouseEnter(container.querySelector('.ant-table-column-sorters')!);
     act(() => {
@@ -305,6 +306,42 @@ describe('Table.sorter', () => {
     });
     expect(container.querySelector('.ant-tooltip-open')).toBeFalsy();
     fireEvent.mouseOut(container.querySelector('.ant-table-column-sorters')!);
+
+    // set table props sorterTooltipScope is sorter, column sorterTooltipScope is title
+    rerender(
+      createTable({
+        sorterTooltipScope: 'sorter',
+        columns: [{ ...column, sorterTooltipScope: 'title' }],
+      }),
+    );
+    fireEvent.mouseEnter(container.querySelector('.ant-table-column-sorters')!);
+    act(() => {
+      jest.runAllTimers();
+    });
+    expect(container.querySelector('.ant-tooltip-open')).toBeTruthy();
+    fireEvent.mouseOut(container.querySelector('.ant-table-column-sorters')!);
+
+    // set table props sorterTooltipScope is title, column sorterTooltipScope is sorter
+    rerender(
+      createTable({
+        sorterTooltipScope: 'title',
+        columns: [{ ...column, sorterTooltipScope: 'sorter' }],
+      }),
+    );
+    // first, test that hovering over the title element does NOT open tooltip
+    fireEvent.mouseEnter(container.querySelector('.ant-table-column-title')!);
+    act(() => {
+      jest.runAllTimers();
+    });
+    expect(container.querySelector('.ant-tooltip-open')).toBeFalsy();
+    fireEvent.mouseOut(container.querySelector('.ant-table-column-title')!);
+    // finally, test that hovering over the sorter element DOES open tooltip
+    fireEvent.mouseEnter(container.querySelector('.ant-table-column-sorter')!);
+    act(() => {
+      jest.runAllTimers();
+    });
+    expect(container.querySelector('.ant-tooltip-open')).toBeTruthy();
+    fireEvent.mouseOut(container.querySelector('.ant-table-column-sorter')!);
   });
 
   it('should show correct tooltip when showSorterTooltip is an object', () => {
